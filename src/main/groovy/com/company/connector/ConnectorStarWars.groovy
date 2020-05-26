@@ -1,12 +1,13 @@
 package com.company.connector
 
-import org.bonitasoft.engine.connector.AbstractConnector;
-import org.bonitasoft.engine.connector.ConnectorException;
-import org.bonitasoft.engine.connector.ConnectorValidationException;
-
-import com.fasterxml.jackson.databind.ObjectMapper
 
 import groovy.util.logging.Slf4j
+import okhttp3.Interceptor
+import okhttp3.OkHttpClient
+import okhttp3.logging.HttpLoggingInterceptor
+import org.bonitasoft.engine.connector.AbstractConnector
+import org.bonitasoft.engine.connector.ConnectorException
+import org.bonitasoft.engine.connector.ConnectorValidationException
 import retrofit2.Retrofit
 import retrofit2.converter.jackson.JacksonConverterFactory
 
@@ -17,7 +18,6 @@ class ConnectorStarWars extends AbstractConnector {
     def static final URL_INPUT = "url"
     def static final PERSON_OUTPUT = "person"
 
-    def final ObjectMapper mapper = new ObjectMapper()
     def StarWarsService service
 
     /**
@@ -55,22 +55,34 @@ class ConnectorStarWars extends AbstractConnector {
         def response = getService().person(name).execute()
         if (response.isSuccessful()) {
             def persons = response.body.getPersons()
-            if(!persons.isEmpty()) {
+            if (!persons.isEmpty()) {
                 def person = persons[0]
                 setOutputParameter(PERSON_OUTPUT, person)
+            } else {
+                throw new ConnectorException("$name not found")
             }
-            throw new ConnectorException("$name not found")
+        } else {
+            throw new ConnectorException(response.message())
         }
-        throw new ConnectorException(response.message())
     }
 
     @Override
     def void connect() throws ConnectorException {
-        service = createService(getInputParameter(URL))
+        def httpClient = createHttpClient(new HttpLoggingInterceptor().setLevel(HttpLoggingInterceptor.Level.BASIC))
+        service = createService(httpClient, getInputParameter(URL_INPUT))
     }
 
-    def static StarWarsService createService(String baseUrl) {
+    def static OkHttpClient createHttpClient(Interceptor... interceptors) {
+        def clientBuilder = new OkHttpClient.Builder();
+        if (interceptors != null) {
+            interceptors.each { i -> clientBuilder.interceptors().add(i) }
+        }
+        clientBuilder.build()
+    }
+
+    def static StarWarsService createService(OkHttpClient client, String baseUrl) {
         new Retrofit.Builder()
+                .client(client)
                 .addConverterFactory(JacksonConverterFactory.create())
                 .baseUrl(baseUrl)
                 .build()
