@@ -1,8 +1,0 @@
-<jarDependencies>
-<jarDependency>connector-starwars-1.0.0-SNAPSHOT.jar</jarDependency>
-<jarDependency>okhttp-3.10.0.jar</jarDependency>
-<jarDependency>retrofit-2.4.0.jar</jarDependency>
-<jarDependency>okio-1.14.0.jar</jarDependency>
-<jarDependency>converter-jackson-2.4.0.jar</jarDependency>
-
-</jarDependencies>

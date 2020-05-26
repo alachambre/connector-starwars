@@ -21,5 +21,6 @@
     -->
     <page id="defaultPage">
         <widget xsi:type="definition:Text" id="nameWidget" inputName="name"/>
+        <widget xsi:type="definition:Text" id="urlWidget" inputName="url"/>
     </page>
 </definition:ConnectorDefinition>

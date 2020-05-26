@@ -3,7 +3,7 @@ package com.company.connector.model
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-class Person {
+class Person implements Serializable {
 
     String name
 

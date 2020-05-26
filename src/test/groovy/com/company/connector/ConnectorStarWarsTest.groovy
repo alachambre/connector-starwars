@@ -1,51 +1,88 @@
-
 package com.company.connector
 
 import com.company.connector.model.Person
-import com.company.connector.model.PersonResponse
-
-import retrofit2.Call
-import retrofit2.Response
+import okhttp3.logging.HttpLoggingInterceptor
+import okhttp3.mockwebserver.MockResponse
+import okhttp3.mockwebserver.MockWebServer
+import org.bonitasoft.engine.connector.ConnectorException
 import spock.lang.Specification
 
 class ConnectorStarWarsTest extends Specification {
 
-    /**
-     * Integration test - requires internet
-     */
-    def should_retrieve_luke_data_using_retrofit() {
-        given: 'A service'
-        def service = ConnectorStarWars.createService("http://swapi.dev/")
+    def server
+    def connector
 
-        when: 'Searching for luke'
-        def call = service.person("Luke")
-        def Response<PersonResponse> response = call.execute()
+    def setup() {
+        server = new MockWebServer()
+        def url = server.url("/")
+        def baseUrl = "http://${url.host}:${url.port}"
 
-        then: 'Should contain Luke data'
-        assert response.isSuccessful() == true
-        assert response.body.persons.size() == 1
-        assert response.body.persons[0].name == "Luke Skywalker"
+        def httpClient = ConnectorStarWars.createHttpClient(new HttpLoggingInterceptor().setLevel(HttpLoggingInterceptor.Level.BODY))
+        def service = ConnectorStarWars.createService(httpClient, baseUrl)
+
+        connector = new ConnectorStarWars()
+        connector.service = service
     }
 
-    def should_use_retrofit_service_with_connector_parameters() {
-        given: 'A connector'
-        def connector = new ConnectorStarWars()
-        def name = 'Luke'
-        def personResponse = new PersonResponse()
-        def Person person = new Person()
-        personResponse.getPersons().add(person)
-        def service = Mock(StarWarsService)
-        def Call<Response> call = Mock()
-        def response =  Response.success(personResponse)
-        call.execute() >> response
-        service.person(name) >> call
-        connector.service = service
-        connector.setInputParameters(['name':name])
+    def cleanup() {
+        server.shutdown();
+    }
 
-        when: 'Executing business logic'
+    /**
+     * Connector unit test - no internet required
+     */
+    def should_fetch_person() {
+        given: 'A person name'
+        def name = 'Luke'
+        and: 'A related person JSON response'
+        def body = "{\"count\":1,\"next\":null,\"previous\":null,\"results\":[{\"name\":\"$name Skywalker\",\"height\":\"172\",\"mass\":\"77\",\"hair_color\":\"blond\",\"skin_color\":\"fair\",\"eye_color\":\"blue\",\"birth_year\":\"19BBY\",\"gender\":\"male\",\"homeworld\":\"http://swapi.dev/api/planets/1/\",\"films\":[\"http://swapi.dev/api/films/1/\",\"http://swapi.dev/api/films/2/\",\"http://swapi.dev/api/films/3/\",\"http://swapi.dev/api/films/6/\"],\"species\":[],\"vehicles\":[\"http://swapi.dev/api/vehicles/14/\",\"http://swapi.dev/api/vehicles/30/\"],\"starships\":[\"http://swapi.dev/api/starships/12/\",\"http://swapi.dev/api/starships/22/\"],\"created\":\"2014-12-09T13:50:51.644000Z\",\"edited\":\"2014-12-20T21:17:56.891000Z\",\"url\":\"http://swapi.dev/api/people/1/\"}]}"
+        server.enqueue(new MockResponse().setBody(body))
+
+        when: 'Executing connector'
+        connector.setInputParameters(['name': name])
         connector.executeBusinessLogic()
 
-        then : 'Service should have been called with the parameter'
-        1 * service.person(name)
+        then: 'Connector output should contain the person data'
+        def outputParameters = connector.outputParameters
+        outputParameters.size() == 1
+
+        def person = outputParameters.get(ConnectorStarWars.PERSON_OUTPUT)
+        person instanceof Person
+        person.name == "Luke Skywalker"
+    }
+
+    /**
+     * Connector unit test - no internet required
+     */
+    def should_get_unknown_person() {
+        given: 'An API server'
+        String body = "{\"results\":[]}"
+        server.enqueue(new MockResponse().setBody(body))
+
+        when: 'Executing business logic'
+        def name = 'Luke'
+        connector.setInputParameters(['name': name])
+        connector.executeBusinessLogic()
+
+        then: 'Connector should throw exception'
+        def e = thrown(ConnectorException)
+        e.getMessage() == "$name not found"
+    }
+
+    /**
+     * Connector unit test - no internet required
+     */
+    def should_handle_server_error() {
+        given: 'An API server'
+        server.enqueue(new MockResponse().setResponseCode(500))
+
+        when: 'Executing business logic'
+        def name = 'Luke'
+        connector.setInputParameters(['name': name])
+        connector.executeBusinessLogic()
+
+        then: 'Connector should throw exception'
+        def e = thrown(ConnectorException)
+        e.getMessage() == "Server Error"
     }
 }
