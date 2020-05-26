@@ -10,7 +10,7 @@
     <input mandatory="true" name="url" type="java.lang.String" defaultValue="http://swapi.dev/"/>
     
     <!-- Connector outputs -->
-    <output name="person" type="com.company.connector.Person"/>
+    <output name="person" type="com.company.connector.model.Person"/>
     
     <!--
        Pages and widgets to use the connector in the Bonita Studio.
