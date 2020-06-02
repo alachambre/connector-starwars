@@ -12,13 +12,25 @@ import retrofit2.Retrofit
 import retrofit2.converter.jackson.JacksonConverterFactory
 
 @Slf4j
-class ConnectorStarWars extends AbstractConnector {
+class StarWarsConnector extends AbstractConnector {
 
     def static final NAME_INPUT = "name"
     def static final URL_INPUT = "url"
     def static final PERSON_OUTPUT = "person"
 
     def StarWarsService service
+
+    StarWarsConnector() {
+        Properties properties = new Properties()
+        this.getClass().getResource('/git.properties').withInputStream {
+            properties.load(it)
+        }
+        log.info "Connector ${getClass().getName()} created"
+        log.info "Connector build version : ${properties.get('git.build.version')}"
+        log.info "Connector git repo url : ${properties.get('git.remote.origin.url')}"
+        log.info "Connector git branch : ${properties.get('git.branch')}"
+        log.info "Connector git commit id : ${properties.get('git.commit.id.full')}"
+    }
 
     /**
      * Perform validation on the inputs defined on the connector definition (src/main/resources/connector-starwars.def)
@@ -51,7 +63,8 @@ class ConnectorStarWars extends AbstractConnector {
     @Override
     def void executeBusinessLogic() throws ConnectorException {
         def name = getInputParameter(NAME_INPUT)
-        log.info "$NAME_INPUT : $name"
+        log.info "Execute connector with \"$NAME_INPUT\" parameter value: $name"
+
         def response = getService().person(name).execute()
         if (response.isSuccessful()) {
             def persons = response.body.getPersons()

@@ -1,13 +1,14 @@
 package com.company.connector
 
-import com.company.connector.model.Person
 import okhttp3.logging.HttpLoggingInterceptor
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
 import org.bonitasoft.engine.connector.ConnectorException
 import spock.lang.Specification
 
-class ConnectorStarWarsTest extends Specification {
+import static com.company.connector.StarWarsService.*
+
+class StarWarsConnectorTest extends Specification {
 
     def server
     def connector
@@ -17,10 +18,10 @@ class ConnectorStarWarsTest extends Specification {
         def url = server.url("/")
         def baseUrl = "http://${url.host}:${url.port}"
 
-        def httpClient = ConnectorStarWars.createHttpClient(new HttpLoggingInterceptor().setLevel(HttpLoggingInterceptor.Level.BODY))
-        def service = ConnectorStarWars.createService(httpClient, baseUrl)
+        def httpClient = StarWarsConnector.createHttpClient(new HttpLoggingInterceptor().setLevel(HttpLoggingInterceptor.Level.BODY))
+        def service = StarWarsConnector.createService(httpClient, baseUrl)
 
-        connector = new ConnectorStarWars()
+        connector = new StarWarsConnector()
         connector.service = service
     }
 
@@ -46,7 +47,7 @@ class ConnectorStarWarsTest extends Specification {
         def outputParameters = connector.outputParameters
         outputParameters.size() == 1
 
-        def person = outputParameters.get(ConnectorStarWars.PERSON_OUTPUT)
+        def person = outputParameters.get(StarWarsConnector.PERSON_OUTPUT)
         person instanceof Person
         person.name == "Luke Skywalker"
     }
