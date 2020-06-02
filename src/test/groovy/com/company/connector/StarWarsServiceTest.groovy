@@ -1,10 +1,11 @@
 package com.company.connector
 
 
-import com.company.connector.model.PersonResponse
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Response
 import spock.lang.Specification
+
+import static com.company.connector.StarWarsService.*
 
 class StarWarsServiceTest extends Specification {
 
@@ -13,8 +14,8 @@ class StarWarsServiceTest extends Specification {
      */
     def should_retrieve_luke_data_using_retrofit() {
         given: 'A service'
-        def httpClient = ConnectorStarWars.createHttpClient(new HttpLoggingInterceptor().setLevel(HttpLoggingInterceptor.Level.BODY))
-        def service = ConnectorStarWars.createService(httpClient, "http://swapi.dev/")
+        def httpClient = StarWarsConnector.createHttpClient(new HttpLoggingInterceptor().setLevel(HttpLoggingInterceptor.Level.BODY))
+        def service = StarWarsConnector.createService(httpClient, "http://swapi.dev/")
 
         when: 'Searching for luke'
         def call = service.person("Luke")
