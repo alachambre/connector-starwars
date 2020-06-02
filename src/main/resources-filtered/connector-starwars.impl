@@ -8,6 +8,6 @@
   <description>Default ${connector-definition-id} implementation</description>
 
 <!-- retrieved from the pom.xml at build time -->
-$Dependencies$
+${connector-dependencies}
 
 </implementation:connectorImplementation>
