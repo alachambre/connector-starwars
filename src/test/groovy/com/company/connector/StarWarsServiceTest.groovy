@@ -1,6 +1,5 @@
 package com.company.connector
 
-
 import com.company.connector.model.PersonResponse
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Response

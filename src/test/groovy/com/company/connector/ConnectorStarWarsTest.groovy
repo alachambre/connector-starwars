@@ -1,11 +1,15 @@
+
 package com.company.connector
 
 import com.company.connector.model.Person
 import okhttp3.logging.HttpLoggingInterceptor
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
+import org.bonitasoft.engine.connector.ConnectorValidationException
 import org.bonitasoft.engine.connector.ConnectorException
 import spock.lang.Specification
+
+import static com.company.connector.StarWarsService.*
 
 class ConnectorStarWarsTest extends Specification {
 
@@ -28,14 +32,63 @@ class ConnectorStarWarsTest extends Specification {
         server.shutdown();
     }
 
+    def should_throw_exception_if_mandatory_input_is_missing() {
+        given: 'Connector with missing input'
+        def connector = new ConnectorStarWars()
+
+        when: 'Validating inputs'
+        connector.validateInputParameters()
+
+        then: 'ConnectorValidationException is thrown'
+        thrown ConnectorValidationException
+    }
+
+    def should_throw_exception_if_mandatory_input_is_empty() {
+        given: 'A connector without an empty input'
+        def connector = new ConnectorStarWars()
+        connector.setInputParameters([(ConnectorStarWars.NAME_INPUT):''])
+
+        when: 'Validating inputs'
+        connector.validateInputParameters()
+
+        then: 'ConnectorValidationException is thrown'
+        thrown ConnectorValidationException
+    }
+
+    def should_throw_exception_if_mandatory_input_is_not_a_string() {
+        given: 'A connector without an integer input'
+        def connector = new ConnectorStarWars()
+        connector.setInputParameters([(ConnectorStarWars.NAME_INPUT):38])
+
+        when: 'Validating inputs'
+        connector.validateInputParameters()
+
+        then: 'ConnectorValidationException is thrown'
+        thrown ConnectorValidationException
+    }
+
     /**
-     * Connector unit test - no internet required
-     */
+    * Connector unit test - no internet required
+    */
     def should_fetch_person() {
         given: 'A person name'
         def name = 'Luke'
         and: 'A related person JSON response'
-        def body = "{\"count\":1,\"next\":null,\"previous\":null,\"results\":[{\"name\":\"$name Skywalker\",\"height\":\"172\",\"mass\":\"77\",\"hair_color\":\"blond\",\"skin_color\":\"fair\",\"eye_color\":\"blue\",\"birth_year\":\"19BBY\",\"gender\":\"male\",\"homeworld\":\"http://swapi.dev/api/planets/1/\",\"films\":[\"http://swapi.dev/api/films/1/\",\"http://swapi.dev/api/films/2/\",\"http://swapi.dev/api/films/3/\",\"http://swapi.dev/api/films/6/\"],\"species\":[],\"vehicles\":[\"http://swapi.dev/api/vehicles/14/\",\"http://swapi.dev/api/vehicles/30/\"],\"starships\":[\"http://swapi.dev/api/starships/12/\",\"http://swapi.dev/api/starships/22/\"],\"created\":\"2014-12-09T13:50:51.644000Z\",\"edited\":\"2014-12-20T21:17:56.891000Z\",\"url\":\"http://swapi.dev/api/people/1/\"}]}"
+        def body = """
+            {"results": [
+                {
+                    "name":"$name Skywalker",
+                    "height":"172",
+                    "mass":"77",
+                    "hair_color":"blond",
+                    "skin_color":"fair",
+                    "eye_color":"blue",
+                    "birth_year":"19BBY",
+                    "gender":"male",
+                    "homeworld":"http://swapi.dev/api/planets/1/"
+                }
+            ]}
+        """
         server.enqueue(new MockResponse().setBody(body))
 
         when: 'Executing connector'
@@ -52,8 +105,8 @@ class ConnectorStarWarsTest extends Specification {
     }
 
     /**
-     * Connector unit test - no internet required
-     */
+    * Connector unit test - no internet required
+    */
     def should_get_unknown_person() {
         given: 'An API server'
         String body = "{\"results\":[]}"
@@ -70,8 +123,8 @@ class ConnectorStarWarsTest extends Specification {
     }
 
     /**
-     * Connector unit test - no internet required
-     */
+    * Connector unit test - no internet required
+    */
     def should_handle_server_error() {
         given: 'An API server'
         server.enqueue(new MockResponse().setResponseCode(500))

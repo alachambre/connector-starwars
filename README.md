@@ -3,7 +3,7 @@
 The readme contains details on the content of the generated project, and how it should be used to develop and build a Bonita connector. More details are available in the documentation: [https://documentation.bonitasoft.com/](https://documentation.bonitasoft.com/).
 
 #### Connector definition
-A connector is first defined by its **definition**.  It is an XML file located in _src/main/resources/[connector name].def_ by default.   
+A connector is first defined by its **definition**.  It is an XML file located in _src/main/resources-filtered/[connector name].def_ by default.   
 A connector definition defines the inputs and the outputs of a connector. It can be seen as a black box. The definition explicits what will be passed to the connector, and what is expected as output. Then, implementations of this definition can be created, they just need to respect the inputs / outputs contract of the definition.  
 The connector definition XSD is available in _schemas/connector-definition-descriptor.xsd_, you can import it in a IDE to get completion. 
 
@@ -90,7 +90,7 @@ A connector implementation is made of two elements:
 
 ##### Implementation XML file
 
-The implementation XML file is located in _src/main/resources/[connector name].impl_ by default.  
+The implementation XML file is located in _src/main/resources-filtered/[connector name].impl_ by default.  
 The connector definition XSD is available in _schemas/connector-implementation-descriptor.xsd_, you can import it in a IDE to get completion. 
 
 Example: 
@@ -188,15 +188,6 @@ The methods _connect_ and _disconnect_ can be used to open and close a connectio
 #### Build a connector project
 
 A connector project is built using Maven, and especially the [maven assembly plugin](https://maven.apache.org/plugins/maven-assembly-plugin/).   
-The root _pom.xml_ file has the following parent: 
-```xml
-<parent>
-    <groupId>org.bonitasoft.connectors</groupId>
-    <artifactId>bonita-connectors</artifactId>
-    <version>1.0.0</version>
-</parent>
-```
-This parent contains the logic that make the replacements in the implementation xml file at build time.
 
 By default, a zip archives is built containing all the definitions and implementations found in the project.
 By importing this archive in a Bonita Studio you will import all the definitions and implementations created in the project
