@@ -23,7 +23,7 @@
         <connector-main-class>com.company.connector.ConnectorStarWars</connector-main-class>
 
         <!-- Bonita -->
-        <bonita.engine.version>7.13.0-SNAPSHOT</bonita.engine.version>
+        <bonita.engine.version>7.12.1</bonita.engine.version>
         <groovy.version>3.0.7</groovy.version>
 
         <!-- Retrofit -->
